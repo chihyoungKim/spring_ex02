@@ -2,21 +2,38 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
 
 	<bean class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" id="passwordEncoder" />
-	<bean class="com.wdkim.security.CustomUserDetailsService" id="userDetailsService"></bean>
-
+	<bean class="com.wdkim.security.CustomUserDetailsService" id="userDetailsService" />
+	<bean class="com.wdkim.security.CustomAccessDeniedHandler" id="accessDeniedHandler" />
+	<bean id="csrfMatcher" class="org.springframework.security.web.util.matcher.OrRequestMatcher">
+		<constructor-arg>
+			<util:list value-type="org.springframework.web.servlet.handler.RequestMatchResult">
+				<bean class="org.springframework.security.web.util.matcher.AntPathRequestMatcher">
+					<constructor-arg name="pattern" value="/sample/**" />
+					<constructor-arg name="httpMethod" value="POST" />
+				</bean>
+			</util:list>
+		</constructor-arg>
+	</bean>
+	<bean class="org.springframework.security.web.util.matcher.AntPathRequestMatcher" id="csrfMatcher2">
+		<constructor-arg name="pattern" value="/sample/**" />
+		<constructor-arg name="httpMethod" value="POST" />
+	</bean>
 
 	<security:http>
 		<security:form-login login-page="/member/login" />
 		<security:logout logout-url="/logout" logout-success-url="/" />
-		<security:csrf disabled="true"/><!-- scrf에 대한 경보 해제 -->
+		<security:csrf request-matcher-ref="csrfMatcher"/>
 		<security:intercept-url pattern="/sample/all" access="permitAll"/>
 		<security:intercept-url pattern="/sample/member" access="hasAnyRole('ROLE_USER, ROLE_MEMBER, ROLE_MANAGER')"/>
 		<security:intercept-url pattern="/sample/admin" access="hasRole('ROLE_ADMIN')"/>
 		<security:remember-me data-source-ref="dataSource"/>
+		<security:access-denied-handler ref="accessDeniedHandler"/>
 		
 	</security:http>
 	<security:authentication-manager>
