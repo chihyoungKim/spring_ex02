@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        $(function() {
+            $("button").click(function() {
+            	
+            	/*
+                $.ajax("http://localhost:8080/replies/pages/174141", {
+                    success : function(result) {
+                        console.log(result);
+                    },
+                    dataType : "json"
+                })
+                */
+                
+                /* 
+                $.getJSON("http://localhost:8080/replies/pages/174141", function(result) {
+                	console.log(result)
+                })
+                */
+                
+                // .done() 이게제일좋다?
+                /* $.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                	console.log(1)
+                	$.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                    	console.log(2)
+                    	$.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                        	console.log(3)
+                        	$.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                            	console.log(4)
+                            	$.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                                	console.log(5)
+                                });
+                            });
+                        });
+                    });
+                }); */
+                
+                /* $.getJSON("http://localhost:8080/replies/pages/174141").done(function(result) {
+                	console.log(1, result)
+                	result.push(result[0]);
+                	console.log(2, result)
+                }).done(function(result) {
+                	console.log(3, result)
+                }) */
+                /* var obj = $.getJSON("http://localhost:8080/replies/pages/174141");
+                console.log(obj); // 이게 xhr이네? */
+                
+                $.getJSON("http://localhost:8080/replies/paes/174141")
+                .done(function(result, status, xhr) {
+                	console.log("연결 성공")
+                	console.log(status, xhr)
+                	console.log(xhr.responseJSON)
+                	console.log(result)
+                	
+                })
+                .fail(function(xhr, status, er) {
+                	console.log("연결 실패")
+                	console.log(xhr)
+                	console.log(status)
+                	console.log(er)
+                })
+                
+                /* var obj = $.ajax("http://localhost:8080/replies/pages/174141")
+                console.log(obj); */
+            	
+            })
+        })
+    </script>
+</head>
+<body>
+    <button>ajax call</button>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdkim.mapper.BoardMapper">
+	<sql id="cri">
+		<!-- <if test="typeArr != null"> -->
+		<trim prefix=" (" suffix=") AND" prefixOverrides="OR">
+			<foreach collection="typeArr" item="t">
+				<trim prefix="OR">
+					<if test="t == 'T'.toString()">
+						LOWER(TITLE) LIKE LOWER('%' || #{keyword} || '%')
+					</if>
+					<if test="t == 'C'.toString()">
+						LOWER(CONTENT) LIKE LOWER('%${keyword}%')
+					</if>
+					<if test="t == 'W'.toString()">
+						LOWER(WRITER) LIKE LOWER('%${keyword}%')
+					</if>
+				</trim>
+			</foreach>
+		</trim>
+		<!-- </if> -->
+	</sql>
+	<select id="getList" resultType="com.wdkim.domain.BoardVO">
+		<![CDATA[
+		SELECT * FROM TBL_BOARD WHERE BNO > 0
+		]]>
+		<!-- 쿼리를 수행했을 때 결과를 resultType에 부여하겠다.
+		제네릭을 부여한것. Alias어노테이션으로 패키지 이름 간단하게바꿈 
+		이 경우 root-context.xml 에 마이바티스빈의 프로퍼티로 따로 추가도 해줘야한다.
+		-->
+		<!-- CDATA : 캐릭터 데이터(character data)
+		실제 문자열로 사용되게 하는, 회피의 목적으로 사용된다.
+		< 같은 연산자를 태그의 시작이 아닌 연산자로써 사용되게 함.
+		entity code : 카피라이트할떄 썼었다. -->
+	</select>
+	<select id="getListWithPaging" resultType="com.wdkim.domain.BoardVO">
+		SELECT
+		    *
+		FROM (
+		    SELECT
+		        /*+ INDEX_DESC(TBL_BOARD BOARD_PK) */
+		        ROWNUM RN,
+		        BNO,
+		        TITLE,
+		        CONTENT,
+		        WRITER,
+		        REGDATE,
+		        UPDATEDATE,
+		        REPLYCNT
+		    FROM
+		        TBL_BOARD
+		    WHERE
+		    <include refid="cri" />
+		<![CDATA[
+			    ROWNUM <= #{pageNum} * #{amount}
+			)
+			WHERE RN > (#{pageNum} - 1) * #{amount}
+		]]>
+	</select>
+	<select id="read" resultType="board">
+		SELECT * FROM TBL_BOARD WHERE BNO = #{bno}
+	</select>
+	<insert id="insert">
+		<![CDATA[
+			INSERT INTO TBL_BOARD(BNO, TITLE, CONTENT, WRITER)
+			VALUES (SEQ_BOARD.NEXTVAL, #{title}, #{content}, #{writer})
+		]]>
+	</insert>
+	<insert id="insertSelectKey">
+		<selectKey keyProperty="bno" order="BEFORE" resultType="long">
+			SELECT SEQ_BOARD.NEXTVAL FROM DUAL
+		</selectKey>
+		<!-- 밑의 쿼리를 진행하기전에 위의 selectkey 태그를 진행한다. -->
+		<![CDATA[
+			INSERT INTO TBL_BOARD(BNO, TITLE, CONTENT, WRITER)
+			VALUES (#{bno}, #{title}, #{content}, #{writer})
+		]]>
+	</insert>
+	
+	<delete id="delete">
+		<![CDATA[
+			DELETE TBL_BOARD WHERE BNO = #{bno}
+		]]>
+	</delete>
+	
+	<update id="update">
+		<![CDATA[
+			UPDATE TBL_BOARD SET
+				TITLE = #{title},
+				CONTENT = #{content},
+				UPDATEDATE = SYSDATE
+			WHERE BNO = #{bno}
+		]]>
+	</update>
+	
+	<select id="getTotalCount" resultType="int">
+		SELECT COUNT(*) FROM TBL_BOARD 
+		WHERE 
+		<include refid="cri" />
+		BNO > 0
+	</select>
+	
+	<select id="getListDynamicTest" resultType="board">
+		<![CDATA[
+		SELECT * FROM TBL_BOARD
+		]]>
+		<!-- WHERE (
+		<if test="type == 'T'.toString()">
+			    TITLE LIKE '%' || #{keyworld} || '%' OR
+		</if>
+			    CONTENT LIKE '%${keyworld}%' OR
+			    WRITER LIKE '%${keyworld}%'
+			    ) -->
+		<!-- <where>
+			<if test="keyworld != null">
+				TITLE LIKE '%' || #{keyworld} || '%'
+			</if>
+			<trim prefix="AND">
+				ROWNUM &lt;= 10
+			</trim>
+		</where> -->
+		WHERE
+		<include refid="cri" />
+		
+		ROWNUM &lt;= 3
+		
+		
+			
+	</select>
+	
+	<update id="updateReplyCnt">
+		UPDATE TBL_BOARD SET REPLYCNT = REPLYCNT + #{amount}
+		WHERE BNO = #{bno}
+	</update>
+	
+</mapper>
